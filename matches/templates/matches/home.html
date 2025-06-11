@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Головна - SecondLifeRP{% endblock %}
+{% block content %}
+
+<h1>Тоталізатор SecondLifeRP 🎮</h1>
+<p style="opacity: 0.7;">Ставки в реальному часі, live-статистика, виграші, та турніри BO3/BO5. Обирай переможця — вигравай справжні гроші!</p>
+
+<hr>
+
+<h2>🔴 Прямо зараз</h2>
+<div class="match-grid">
+    {% for match in live %}
+        {% include 'matches/match_card.html' with match=match status='live' %}
+    {% empty %}
+        <p>Наразі немає матчів у прямому ефірі.</p>
+    {% endfor %}
+</div>
+
+<h2>📅 Найближчі матчі</h2>
+<div class="match-grid">
+    {% for match in upcoming %}
+        {% include 'matches/match_card.html' with match=match status='upcoming' %}
+    {% empty %}
+        <p>Поки немає майбутніх матчів.</p>
+    {% endfor %}
+</div>
+
+<h2>✅ Завершені матчі</h2>
+<div class="match-grid">
+    {% for match in past %}
+        {% include 'matches/match_card.html' with match=match status='finished' %}
+    {% empty %}
+        <p>Завершених матчів поки немає.</p>
+    {% endfor %}
+</div>
+
+{% endblock %}

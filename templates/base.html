@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}SecondLifeRP БК{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #121212;
+            font-family: 'Rubik', sans-serif;
+            color: #fff;
+            margin: 0;
+        }
+        .navbar {
+            background-color: #1f1f1f;
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 30px;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            position: relative;
+            z-index: 100;
+        }
+        .nav-left a {
+            color: #00d084;
+            font-weight: 700;
+            text-decoration: none;
+            font-size: 20px;
+            transition: color 0.3s ease;
+        }
+        .nav-left a:hover {
+            color: #00b36a;
+        }
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+            font-weight: 600;
+        }
+        .balance {
+            background: #00d084;
+            color: #000;
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: default;
+            user-select: none;
+            font-size: 16px;
+            min-width: 90px;
+            text-align: center;
+            box-shadow: 0 0 8px #00d084aa;
+        }
+
+        /* Обгортка аватарки + меню */
+        .avatar-menu-wrapper {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+        .avatar-menu-wrapper img {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 2px solid #00d084;
+            display: block;
+            transition: box-shadow 0.3s ease;
+        }
+        .avatar-menu-wrapper:hover img,
+        .avatar-menu-wrapper:focus-within img {
+            box-shadow: 0 0 8px #00d084bb;
+        }
+        /* Меню */
+        .profile-menu {
+            position: absolute;
+            top: 54px; /* 42px аватар + відступ */
+            right: 0;
+            background-color: #222222;
+            border: 1px solid #00d084;
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0, 208, 132, 0.5);
+            min-width: 180px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s;
+            user-select: none;
+            z-index: 150;
+        }
+        /* Показати меню при наведенні на батька */
+        .avatar-menu-wrapper:hover .profile-menu,
+        .avatar-menu-wrapper:focus-within .profile-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .profile-menu a {
+            display: block;
+            padding: 12px 20px;
+            color: #00d084;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background-color 0.25s ease, color 0.25s ease;
+        }
+        .profile-menu a:hover,
+        .profile-menu a:focus {
+            background-color: #00d084;
+            color: #121212;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        /* Для клавіатурної доступності */
+        .profile-menu a:focus {
+            box-shadow: 0 0 4px 2px #00d084cc;
+        }
+
+        .container {
+            padding: 30px;
+        }
+        .auth-link {
+    color: #00d084;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 16px;
+    transition: color 0.3s ease;
+}
+.auth-link:hover {
+    color: #00b36a;
+}
+input, select, textarea {
+    background-color: #2a2a2a;
+    color: #fff;
+    border: 1px solid #444;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border 0.3s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: #00d084;
+    box-shadow: 0 0 6px #00d08488;
+}
+
+    </style>
+</head>
+<body>
+    <div class="navbar" role="navigation" aria-label="Головна навігація">
+        <div class="nav-left">
+            <a href="{% url 'home' %}">🏠 Головна</a>
+        </div>
+        <div class="nav-right">
+            {% if request.user.is_authenticated %}
+                <div class="balance" aria-label="Баланс користувача" tabindex="0">
+                    {{ request.user.balance|floatformat:2 }} ₴
+                </div>
+                <div class="avatar-menu-wrapper" tabindex="0" aria-haspopup="true" aria-expanded="false" aria-label="Меню користувача">
+                    <a href="{% url 'profile' %}" tabindex="-1">
+                        <img src="{{ request.user.avatar.url }}" alt="Аватар користувача" />
+                    </a>
+                    <nav class="profile-menu" role="menu" aria-label="Меню профілю">
+                        <a href="{% url 'profile' %}" role="menuitem" tabindex="0">👤 Мій профіль</a>
+                        <a href="{% url 'balance' %}" role="menuitem" tabindex="0">💵 Баланс</a>
+                        <a href="{% url 'bet_history' %}" role="menuitem" tabindex="0">📜 Історія ставок</a>
+                        <a href="{% url 'logout' %}" role="menuitem" tabindex="0">🚪 Вийти</a>
+                    </nav>
+                </div>
+            {% else %}
+                <a href="{% url 'login' %}" class="auth-link">🔐 Вхід</a>
+                <a href="{% url 'register' %}" class="auth-link">📝 Реєстрація</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

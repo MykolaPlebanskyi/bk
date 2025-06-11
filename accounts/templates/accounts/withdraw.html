@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Вивід коштів{% endblock %}
+{% block content %}
+<h2 style="margin-bottom: 20px;">Заявка на вивід коштів</h2>
+
+<form method="post" style="max-width: 400px;">
+    {% csrf_token %}
+
+    <div style="margin-bottom: 15px;">
+        <label for="id_amount">Сума</label><br>
+        {{ form.amount }}
+    </div>
+
+    <div style="margin-bottom: 15px;">
+        <label for="id_card_number">Номер картки</label><br>
+        {{ form.card_number }}
+    </div>
+
+    <button type="submit" class="btn-action">Відправити заявку</button>
+</form>
+
+<div style="margin-top: 20px;">
+    <a href="{% url 'balance' %}" class="btn-action">← Назад до балансу</a>
+</div>
+
+<style>
+    input, select, textarea {
+        width: 100%;
+        padding: 8px 10px;
+        margin-top: 5px;
+        border-radius: 6px;
+        border: 1px solid #444;
+        background-color: #1f1f1f;
+        color: #fff;
+    }
+
+    label {
+        font-weight: bold;
+    }
+
+    .btn-action {
+        background-color: #00d084;
+        color: #000;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-action:hover {
+        background-color: #00b36a;
+        color: #fff;
+    }
+</style>
+{% endblock %}

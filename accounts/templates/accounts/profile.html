@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+
+{% block title %}Профіль - SecondLifeRP{% endblock %}
+
+{% block content %}
+<div class="profile-wrapper">
+    <div class="profile-card">
+        <div class="custom-avatar-wrapper">
+            <img src="{{ request.user.avatar.url }}" alt="Avatar">
+        </div>
+        <h2>{{ request.user.username }}</h2>
+        <p class="balance">💰 Баланс: {{ request.user.balance|floatformat:2 }} ₴</p>
+
+        <form method="post" enctype="multipart/form-data" class="profile-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="avatar" class="custom-file-label">Оберіть аватарку</label>
+                <input type="file" id="avatar" name="avatar" class="custom-file-input">
+            </div>
+            <div class="btn-group">
+                <button type="submit" class="btn btn-save">Зберегти</button>
+                <button type="button" class="btn btn-cancel" id="cancelBtn">Скасувати</button>
+            </div>
+        </form>
+
+        <a href="{% url 'logout' %}" class="btn-logout">🚪 Вийти</a>
+    </div>
+</div>
+
+<style>
+    /* Загальний контейнер */
+    .profile-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 40px 0;
+        padding: 0 15px;
+    }
+
+    .profile-card {
+        background-color: #1f1f1f;
+        padding: 30px 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+        max-width: 400px;
+        width: 100%;
+        text-align: center;
+        color: #ddd;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* Аватар */
+    .custom-avatar-wrapper {
+        margin-bottom: 20px;
+    }
+
+    .custom-avatar-wrapper img {
+        width: 130px;
+        height: 130px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 3px solid #00d084;
+        transition: transform 0.3s ease;
+    }
+    .custom-avatar-wrapper img:hover {
+        transform: scale(1.05);
+    }
+
+    h2 {
+        margin: 10px 0 5px;
+        font-size: 28px;
+        font-weight: 700;
+        color: #00d084;
+        text-shadow: 0 0 8px #00d084aa;
+    }
+
+    /* Форма */
+    .profile-form {
+        text-align: left;
+        margin-bottom: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+        position: relative;
+    }
+
+    /* Стилізований інпут файлу */
+    .custom-file-input {
+        display: none;
+    }
+
+    .custom-file-label {
+        display: block;
+        background-color: #2a2a2a;
+        border: 1px solid #444;
+        padding: 12px 15px;
+        border-radius: 6px;
+        font-size: 15px;
+        color: #bbb;
+        text-align: center;
+        cursor: pointer;
+        user-select: none;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    .custom-file-label:hover {
+        background-color: #00d084;
+        color: #000;
+    }
+
+    /* Кнопки збереження і скасування - група */
+    .btn-group {
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn {
+        flex: 1;
+        padding: 12px 0;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 15px;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .btn-save {
+        background-color: #00d084;
+        color: #000;
+    }
+    .btn-save:hover {
+        background-color: #00b36a;
+        color: #fff;
+    }
+
+    .btn-cancel {
+        background-color: #444;
+        color: #ccc;
+    }
+    .btn-cancel:hover {
+        background-color: #666;
+        color: #fff;
+    }
+
+    /* Кнопка виходу */
+    .btn-logout {
+        display: inline-block;
+        margin-top: 10px;
+        background-color: #ff4d4d;
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: background-color 0.3s ease;
+    }
+    .btn-logout:hover {
+        background-color: #cc0000;
+    }
+</style>
+
+<script>
+    // Зміна тексту на кнопці при виборі файлу
+    const fileInput = document.getElementById('avatar');
+    const fileLabel = document.querySelector('.custom-file-label');
+    const cancelBtn = document.getElementById('cancelBtn');
+
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length > 0) {
+            fileLabel.textContent = fileInput.files[0].name;
+        } else {
+            fileLabel.textContent = 'Оберіть аватарку';
+        }
+    });
+
+    cancelBtn.addEventListener('click', () => {
+        fileInput.value = null;
+        fileLabel.textContent = 'Оберіть аватарку';
+    });
+</script>
+{% endblock %}

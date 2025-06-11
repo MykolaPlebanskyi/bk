@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ match.team1.name }} vs {{ match.team2.name }} — Деталі матчу{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 960px; margin: auto;">
+    <h1 style="text-align: center;">{{ match.team1.name }} vs {{ match.team2.name }}</h1>
+    <p style="text-align: center;">Статус: {{ match.get_status_display }} | Тип серії: {{ match.get_series_type_display }}</p>
+    <hr>
+
+    <h2>Карти</h2>
+    {% for map in maps %}
+        <div style="background-color: #1f1f1f; padding: 20px; margin-bottom: 20px; border-radius: 12px;">
+            <h3>Мапа {{ map.map_number }}: {{ map.map_name }} {% if map.current %}<span style="color: #00d084;">(Поточна)</span>{% endif %} <hr>Переможець: {{map.winner}}</hr> </h3>
+            <p><strong>Рахунок:</strong> {{ match.team1.name }} {{ map.team1_score }} : {{ map.team2_score }} {{ match.team2.name }}</p>
+
+            {% if map.current_weapon %}
+                <p><strong>Поточна зброя:</strong> {{ map.current_weapon }}</p>
+            {% endif %}
+
+            {% if map.rounds.exists %}
+                <h4>Раунди:</h4>
+                <ul style="list-style: none; padding-left: 0;">
+                    {% for round in map.rounds.all %}
+                        <li style="padding: 6px 0; border-bottom: 1px solid #333;">
+                            Раунд {{ round.round_number }} — переможець: <strong>{{ round.winner.name }}</strong>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>Раунди ще не додано.</p>
+            {% endif %}
+        </div>
+    {% endfor %}
+
+    <hr>
+
+    <h2 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 16px;">Зробити ставку</h2>
+
+    {% if not user.is_authenticated %}
+        <p style="color: #f55; font-weight: bold;">Щоб зробити ставку, <a href="{% url 'login' %}">увійдіть у свій акаунт</a>.</p>
+    {% elif not match.betting_open %}
+        <p style="color: #f55; font-weight: bold;">Прийом ставок завершено для цього матчу.</p>
+    {% elif user_has_bet %}
+        <p style="color: #ffaa00; font-weight: bold;">Ви вже зробили ставку на цей матч. Змінити ставку неможливо.</p>
+    {% else %}
+        <form method="post" class="bet-form" style="background-color: #2c2c2c; padding: 24px; border-radius: 16px; max-width: 480px;">
+            {% csrf_token %}
+
+            <div style="margin-bottom: 20px;">
+                <label style="color: #ccc; font-weight: 600;">Команда</label>
+                <div style="display: flex; gap: 12px; margin-top: 8px;">
+                    <label style="flex: 1; background-color: #3b3b3b; padding: 12px; border-radius: 8px; cursor: pointer;">
+                        <input type="radio" name="team" value="{{ match.team1.id }}" required style="margin-right: 8px;">
+                        {{ match.team1.name }}
+                        <span style="color: #00d084; float: right;">{{ odds_team1 }}</span>
+                    </label>
+
+                    <label style="flex: 1; background-color: #3b3b3b; padding: 12px; border-radius: 8px; cursor: pointer;">
+                        <input type="radio" name="team" value="{{ match.team2.id }}" required style="margin-right: 8px;">
+                        {{ match.team2.name }}
+                        <span style="color: #00d084; float: right;">{{ odds_team2 }}</span>
+                    </label>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label for="id_amount" style="color: #ccc; font-weight: 600;">Сума (₴)</label>
+                <input type="number" name="amount" step="0.01" min="1" required
+                    style="width: 100%; padding: 10px; border-radius: 8px; background-color: #3b3b3b; color: #fff; border: none;">
+            </div>
+
+            <button type="submit"
+                    style="background: #00d084; color: #000; font-weight: bold; padding: 12px 20px; border-radius: 10px; width: 100%;">
+                Поставити ставку
+            </button>
+        </form>
+    {% endif %}
+</div>
+{% endblock %}

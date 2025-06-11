@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+{% block title %}Баланс{% endblock %}
+{% block content %}
+<h2 style="margin-bottom: 25px; font-weight: 700; color: #00d084;">
+    Ваш баланс:
+    <span class="custom-balance" style="font-size: 1.6em; margin-left: 10px;">
+        {{ request.user.balance|floatformat:2 }} ₴
+    </span>
+</h2>
+
+<div style="margin: 25px 0; display: flex; gap: 18px;">
+    <button class="btn-action" id="btn-top-up">Поповнити баланс</button>
+    <a href="{% url 'withdraw' %}"><button class="btn-action btn-secondary">Вивести гроші</button></a>
+</div>
+
+<div id="top-up-info" class="top-up-info" aria-hidden="true" role="region" aria-label="Інформація для поповнення балансу">
+    <p>Щоб поповнити баланс, скиньте гроші на цей рахунок: <b>1234567890</b></p>
+    <p>Після переказу надішліть скріншот підтвердження у наш Discord: <b>@Support</b></p>
+</div>
+
+<hr class="separator">
+
+<h3 style="margin-bottom: 15px; color: #00d084;">Історія депозитів і виводів</h3>
+
+{% if transactions %}
+<table class="transactions-table" role="table" aria-label="Історія транзакцій">
+    <thead>
+        <tr>
+            <th scope="col">Дата</th>
+            <th scope="col">Тип</th>
+            <th scope="col">Сума</th>
+            <th scope="col">Статус</th>
+            <th scope="col">Опис</th>
+        </tr>
+    </thead>
+        <tbody>
+        {% for t in transactions %}
+            <tr>
+                <td>{{ t.created_at|date:"d.m.Y H:i" }}</td>
+                <td>{{ t.transaction_type_display }}</td>
+                <td>{{ t.amount }} ₴</td>
+                <td>
+                    {% if t.item_type == 'transaction' %}
+                        {% if t.status == 'pending' %}
+                            <span style="color: #ffa500; font-weight: 700;">Очікує</span>
+                        {% elif t.status == 'completed' %}
+                            <span style="color: #00d084; font-weight: 700;">Успішно</span>
+                        {% elif t.status == 'failed' %}
+                            <span style="color: #ff4444; font-weight: 700;">Неуспішно</span>
+                        {% else %}
+                            {{ t.get_status_display }}
+                        {% endif %}
+                    {% elif t.item_type == 'withdrawal' %}
+                        {% if t.status == 'pending' %}
+                            <span style="color: #ffa500; font-weight: 700;">Очікує</span>
+                        {% elif t.status == 'approved' %}
+                            <span style="color: #00d084; font-weight: 700;">Підтверджено</span>
+                        {% elif t.status == 'rejected' %}
+                            <span style="color: #ff4444; font-weight: 700;">Відхилено</span>
+                        {% else %}
+                            {{ t.get_status_display }}
+                        {% endif %}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if t.item_type == 'withdrawal'%}
+                        {% if t.status == 'pending' %}
+                            <form action="{% url 'cancel_withdrawal' t.id %}" method="post" style="display: inline;">
+    {% csrf_token %}
+    <button type="submit" class="btn-cancel">Скасувати</button>
+</form>
+
+                        {% endif %}
+                    {% else %}
+                            {{ t.description|default:"—" }}
+                    {% endif %}
+                </td>
+
+            </tr>
+        {% endfor %}
+        </tbody>
+
+</table>
+{% else %}
+<p style="margin-top: 12px; font-style: italic; color: #888;">Історія транзакцій порожня.</p>
+{% endif %}
+
+<style>
+    .btn-action {
+        background-color: #00d084;
+        color: #000;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 10px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: 0 4px 10px rgba(0, 208, 132, 0.4);
+        font-size: 1rem;
+        user-select: none;
+    }
+    .btn-action:hover, .btn-action:focus {
+        background-color: #00b36a;
+        color: #fff;
+        outline: none;
+        box-shadow: 0 6px 14px rgba(0, 179, 106, 0.6);
+    }
+    .btn-secondary {
+        background-color: #444;
+        color: #ccc;
+        box-shadow: 0 4px 10px rgba(68, 68, 68, 0.5);
+    }
+    .btn-secondary:hover, .btn-secondary:focus {
+        background-color: #666;
+        color: #fff;
+        box-shadow: 0 6px 14px rgba(102, 102, 102, 0.7);
+    }
+
+    .top-up-info {
+        display: none;
+        padding: 18px 22px;
+        border: 1.5px solid #00d084;
+        margin-top: 12px;
+        background-color: #1f1f1f;
+        border-radius: 12px;
+        color: #ccc;
+        font-size: 1rem;
+        line-height: 1.5;
+        box-shadow: 0 0 12px #00d084aa;
+        user-select: text;
+        max-width: 480px;
+    }
+
+    .top-up-info.show {
+        display: block;
+        animation: fadeInSlideDown 0.3s ease forwards;
+    }
+
+    @keyframes fadeInSlideDown {
+        0% {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .separator {
+        margin: 40px 0;
+        border: none;
+        border-top: 1px solid #333;
+    }
+
+    .transactions-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 1rem;
+        color: #eee;
+        max-width: 100%;
+    }
+
+    .transactions-table thead tr {
+        background-color: #222;
+        color: #00d084;
+        font-weight: 700;
+    }
+    .transactions-table th, .transactions-table td {
+        padding: 14px 18px;
+        border-bottom: 1px solid #333;
+        text-align: left;
+        vertical-align: middle;
+    }
+
+    .transactions-table tbody tr:hover {
+        background-color: #00382244;
+    }
+
+    /*.tbody{*/
+    /*    margin: 0 auto;*/
+    /*}*/
+
+    .btn-cancel {
+    background-color: #ff4444;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(255, 68, 68, 0.4);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    user-select: none;
+    vertical-align: middle;
+    }
+
+    .btn-cancel:hover,
+    .btn-cancel:focus {
+        background-color: #d13030;
+        box-shadow: 0 6px 14px rgba(209, 48, 48, 0.7);
+        outline: none;
+    }
+
+</style>
+
+<script>
+    (function(){
+        const btnTopUp = document.getElementById('btn-top-up');
+        const topUpInfo = document.getElementById('top-up-info');
+
+        // Відкриваємо / закриваємо інфо про поповнення
+        btnTopUp.addEventListener('click', function(event) {
+            event.stopPropagation();
+            topUpInfo.classList.toggle('show');
+            topUpInfo.setAttribute('aria-hidden', !topUpInfo.classList.contains('show'));
+        });
+
+        // Закриваємо, якщо клік не на кнопці і не всередині блоку
+        document.addEventListener('click', function(event) {
+            if (!topUpInfo.contains(event.target) && event.target !== btnTopUp) {
+                topUpInfo.classList.remove('show');
+                topUpInfo.setAttribute('aria-hidden', 'true');
+            }
+        });
+
+        // Закриття через Esc для доступності
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                if (topUpInfo.classList.contains('show')) {
+                    topUpInfo.classList.remove('show');
+                    topUpInfo.setAttribute('aria-hidden', 'true');
+                    btnTopUp.focus();
+                }
+            }
+        });
+    })();
+</script>
+{% endblock %}

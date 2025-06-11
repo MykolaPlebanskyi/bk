@@ -1,0 +1,221 @@
+<style>
+    .match-grid {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-evenly;
+        gap: 20px;
+    }
+
+    .match-card {
+        background: #1e1e1e;
+        border-radius: 15px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+        width: 320px;
+        padding: 20px;
+        transition: transform 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 330px;
+    }
+
+
+    .match-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .team-section {
+        display: flex;
+        align-items: center;
+        text-align: center;
+        justify-content: space-between;
+    }
+
+    .team {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        width: 100px;
+    }
+
+    .team img {
+        width: 64px;
+        height: 64px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 2px solid #00d084;
+    }
+
+    .team span {
+        font-size: 14px;
+        line-height: 16px;
+        color: #fff;
+        text-align: center;
+        min-height: 32px; /* 🔁 Фіксуємо висоту назви команди */
+        overflow: hidden;
+    }
+
+    .vs {
+        font-weight: bold;
+        font-size: 22px;
+        color: #ccc;
+        margin: 0 10px;
+    }
+
+    .match-info {
+        /*margin-top: 15px;*/
+        text-align: center;
+        font-size: 14px;
+        opacity: 0.85;
+    }
+
+    .btn {
+        display: inline-block;
+        margin-top: 10px;
+        background-color: #00d084;
+        color: #000;
+        padding: 6px 12px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    .btn:hover {
+        background-color: #00b374;
+    }
+
+    .score-section {
+        margin-top: 5px;
+    }
+
+    .score-bar-title {
+        color: #ccc;
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 4px;
+    }
+
+    .bar-container {
+        display: flex;
+        height: 12px;
+        background-color: #333;
+        border-radius: 6px;
+        overflow: hidden;
+        margin-bottom: 4px;
+    }
+
+    .bar {
+        height: 100%;
+    }
+
+    .team1 {
+        background-color: #00d084;
+    }
+
+    .team2 {
+        background-color: #ff5c5c;
+    }
+
+    .score-bar-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        color: #aaa;
+        margin-bottom: 10px;
+    }
+    .winner {
+        font-weight: bold;
+        color: #00d084;
+        font-size: 16px;
+        margin-top: 8px;
+        text-align: center;
+    }
+    .score-labels {
+        font-size: 16px;
+        font-weight: bold;
+        color: #ccc;
+        display: flex;
+        justify-content: center;
+        gap: 5px;
+        margin-bottom: 6px;
+    }
+    .score-bar-title {
+        color: #ccc;
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 4px;
+        text-align: center;
+    }
+    .match-card.finished {
+        height: 260px;
+    }
+    .match-card.upcoming {
+        height: 200px;
+    }
+</style>
+
+<div class="match-card {% if status == 'finished' %}finished{% elif status == 'live' %}live{% elif status == 'upcoming' %}upcoming{% endif %}">
+    <!-- Команди -->
+    <div class="team-section">
+        <div class="team">
+            <img src="{{ match.team1.logo.url }}" alt="{{ match.team1.name }}">
+            <span>{{ match.team1.name }}</span>
+        </div>
+        <div class="vs">VS</div>
+        <div class="team">
+            <img src="{{ match.team2.logo.url }}" alt="{{ match.team2.name }}">
+            <span>{{ match.team2.name }}</span>
+        </div>
+    </div>
+
+    <!-- Відображення залежно від статусу -->
+    {% if status == 'live' %}
+        <div class="score-section">
+            <div class="score-bar-title">🧭 Мапи</div>
+            <div class="bar-container">
+                <div class="bar team1" style="flex: {{ match.team1_map_wins|default:0 }};"></div>
+                <div class="bar team2" style="flex: {{ match.team2_map_wins|default:0 }};"></div>
+            </div>
+            <div class="score-bar-labels">
+                <span>{{ match.team1_map_wins|default:0 }}</span>
+                <span>{{ match.team2_map_wins|default:0 }}</span>
+            </div>
+
+            <div class="score-bar-title">🎯 Раунди</div>
+            <div class="bar-container">
+                <div class="bar team1" style="flex: {{ match.team1_rounds|default:0 }};"></div>
+                <div class="bar team2" style="flex: {{ match.team2_rounds|default:0 }};"></div>
+            </div>
+            <div class="score-bar-labels">
+                <span>{{ match.team1_rounds|default:0 }}</span>
+                <span>{{ match.team2_rounds|default:0 }}</span>
+            </div>
+        </div>
+
+    {% elif status == 'finished' %}
+        <div class="score-section">
+            <div class="score-bar-title">✅ Завершено</div>
+            <div class="score-labels">
+                {{ match.get_final_score.0|default:0 }} - {{ match.get_final_score.1|default:0 }}
+            </div>
+            {% if match.team_winner %}
+                <div class="winner">🏆 Переможець: {{ match.team_winner.name }}</div>
+            {% else %}
+                <div class="winner">Нічия або не визначено</div>
+            {% endif %}
+        </div>
+
+    {% elif status == 'upcoming' %}
+        <div class="match-info" style="margin-top: 20px; font-weight: bold;">
+            {{ match.series_type|upper }}<br>
+            {{ match.match_datetime|date:"d.m.Y H:i" }}<br>
+            {% if match.location %}📍 {{ match.location }}{% endif %}
+        </div>
+    {% endif %}
+
+    <!-- Кнопка перегляду -->
+    <div class="match-info">
+        <a href="{% url 'match_detail' match.id %}" class="btn">Переглянути</a>
+    </div>
+</div>
