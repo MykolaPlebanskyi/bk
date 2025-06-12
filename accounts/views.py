@@ -3,6 +3,7 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.core.paginator import Paginator
 
 from .forms import RegisterForm, ProfileUpdateForm, WithdrawForm
 from .models import WithdrawalRequest, Transaction
@@ -62,9 +63,9 @@ def profile_view(request):
 
 @login_required
 def balance_view(request):
-    transactions = list(request.user.transactions.order_by('-created_at')[:10])
+    transactions = list(request.user.transactions.order_by('-created_at'))
     pending_withdrawals = list(
-        request.user.withdrawals.filter(status='pending').order_by('-created_at')[:10]
+        request.user.withdrawals.filter(status='pending').order_by('-created_at')
     )
 
     for t in transactions:
@@ -77,7 +78,11 @@ def balance_view(request):
 
     all_items = sorted(transactions + pending_withdrawals, key=lambda x: x.created_at, reverse=True)
 
-    return render(request, 'accounts/balance.html', {'transactions': all_items})
+    paginator = Paginator(all_items, 10)  # 10 елементів на сторінку
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'accounts/balance.html', {'page_obj': page_obj})
 
 
 # -------------------------------

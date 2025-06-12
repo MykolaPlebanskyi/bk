@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
 {% block title %}Баланс{% endblock %}
 {% block content %}
-<h2 style="margin-bottom: 25px; font-weight: 700; color: #00d084;">
+<h2 style="margin-bottom: 20px; font-weight: 700; color: #00d084;">
     Ваш баланс:
     <span class="custom-balance" style="font-size: 1.6em; margin-left: 10px;">
         {{ request.user.balance|floatformat:2 }} ₴
     </span>
 </h2>
 
-<div style="margin: 25px 0; display: flex; gap: 18px;">
+<div style="margin: 20px 0; display: flex; gap: 18px;">
     <button class="btn-action" id="btn-top-up">Поповнити баланс</button>
     <a href="{% url 'withdraw' %}"><button class="btn-action btn-secondary">Вивести гроші</button></a>
 </div>
@@ -22,7 +22,7 @@
 
 <h3 style="margin-bottom: 15px; color: #00d084;">Історія депозитів і виводів</h3>
 
-{% if transactions %}
+{% if page_obj %}
 <table class="transactions-table" role="table" aria-label="Історія транзакцій">
     <thead>
         <tr>
@@ -33,54 +33,68 @@
             <th scope="col">Опис</th>
         </tr>
     </thead>
-        <tbody>
-        {% for t in transactions %}
-            <tr>
-                <td>{{ t.created_at|date:"d.m.Y H:i" }}</td>
-                <td>{{ t.transaction_type_display }}</td>
-                <td>{{ t.amount }} ₴</td>
-                <td>
-                    {% if t.item_type == 'transaction' %}
-                        {% if t.status == 'pending' %}
-                            <span style="color: #ffa500; font-weight: 700;">Очікує</span>
-                        {% elif t.status == 'completed' %}
-                            <span style="color: #00d084; font-weight: 700;">Успішно</span>
-                        {% elif t.status == 'failed' %}
-                            <span style="color: #ff4444; font-weight: 700;">Неуспішно</span>
-                        {% else %}
-                            {{ t.get_status_display }}
-                        {% endif %}
-                    {% elif t.item_type == 'withdrawal' %}
-                        {% if t.status == 'pending' %}
-                            <span style="color: #ffa500; font-weight: 700;">Очікує</span>
-                        {% elif t.status == 'approved' %}
-                            <span style="color: #00d084; font-weight: 700;">Підтверджено</span>
-                        {% elif t.status == 'rejected' %}
-                            <span style="color: #ff4444; font-weight: 700;">Відхилено</span>
-                        {% else %}
-                            {{ t.get_status_display }}
-                        {% endif %}
-                    {% endif %}
-                </td>
-                <td>
-                    {% if t.item_type == 'withdrawal'%}
-                        {% if t.status == 'pending' %}
-                            <form action="{% url 'cancel_withdrawal' t.id %}" method="post" style="display: inline;">
-    {% csrf_token %}
-    <button type="submit" class="btn-cancel">Скасувати</button>
-</form>
-
-                        {% endif %}
+    <tbody>
+        {% for t in page_obj %}
+        <tr>
+            <td>{{ t.created_at|date:"d.m.Y H:i" }}</td>
+            <td>{{ t.transaction_type_display }}</td>
+            <td>{{ t.amount }} ₴</td>
+            <td>
+                {% if t.item_type == 'transaction' %}
+                    {% if t.status == 'pending' %}
+                        <span style="color: #ffa500; font-weight: 700;">Очікує</span>
+                    {% elif t.status == 'completed' %}
+                        <span style="color: #00d084; font-weight: 700;">Успішно</span>
+                    {% elif t.status == 'failed' %}
+                        <span style="color: #ff4444; font-weight: 700;">Неуспішно</span>
                     {% else %}
-                            {{ t.description|default:"—" }}
+                        {{ t.get_status_display }}
                     {% endif %}
-                </td>
-
-            </tr>
+                {% elif t.item_type == 'withdrawal' %}
+                    {% if t.status == 'pending' %}
+                        <span style="color: #ffa500; font-weight: 700;">Очікує</span>
+                    {% elif t.status == 'approved' %}
+                        <span style="color: #00d084; font-weight: 700;">Підтверджено</span>
+                    {% elif t.status == 'rejected' %}
+                        <span style="color: #ff4444; font-weight: 700;">Відхилено</span>
+                    {% else %}
+                        {{ t.get_status_display }}
+                    {% endif %}
+                {% endif %}
+            </td>
+            <td>
+                {% if t.item_type == 'withdrawal' and t.status == 'pending' %}
+                <form action="{% url 'cancel_withdrawal' t.id %}" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-cancel">Скасувати</button>
+                </form>
+                {% else %}
+                {{ t.description|default:"—" }}
+                {% endif %}
+            </td>
+        </tr>
         {% endfor %}
-        </tbody>
-
+    </tbody>
 </table>
+
+<!-- Пагінація -->
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+            <a href="?page=1">&laquo; Перша</a>
+            <a href="?page={{ page_obj.previous_page_number }}">Назад</a>
+        {% endif %}
+
+        <span class="current-page">
+            Сторінка {{ page_obj.number }} з {{ page_obj.paginator.num_pages }}
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">Далі</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}">Остання &raquo;</a>
+        {% endif %}
+    </span>
+</div>
 {% else %}
 <p style="margin-top: 12px; font-style: italic; color: #888;">Історія транзакцій порожня.</p>
 {% endif %}
@@ -148,7 +162,7 @@
     }
 
     .separator {
-        margin: 40px 0;
+        margin: 15px 0;
         border: none;
         border-top: 1px solid #333;
     }
@@ -202,7 +216,20 @@
         box-shadow: 0 6px 14px rgba(209, 48, 48, 0.7);
         outline: none;
     }
-
+    .pagination {
+        margin-top: 20px;
+        text-align: center;
+        font-weight: 600;
+    }
+    .step-links a {
+        margin: 0 5px;
+        text-decoration: none;
+        color: #00d084;
+    }
+    .step-links .current-page {
+        margin: 0 10px;
+        color: #ccc;
+    }
 </style>
 
 <script>

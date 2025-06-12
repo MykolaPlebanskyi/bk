@@ -11,10 +11,16 @@
         {{ form.amount }}
     </div>
 
-    <div style="margin-bottom: 15px;">
-        <label for="id_card_number">Номер картки</label><br>
-        {{ form.card_number }}
-    </div>
+<div style="margin-bottom: 15px;">
+    <label for="id_card_number">Номер картки</label><br>
+    {{ form.card_number }}
+    {% if form.card_number.errors %}
+        <div style="color: #ff5e5e; margin-top: 5px;">
+            {{ form.card_number.errors.0 }}
+        </div>
+    {% endif %}
+</div>
+
 
     <button type="submit" class="btn-action">Відправити заявку</button>
 </form>

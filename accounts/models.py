@@ -30,8 +30,8 @@ class WithdrawalRequest(models.Model):
     ]
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='withdrawals')
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    card_number = models.CharField(max_length=30, null=True, blank=True)
+    amount = models.IntegerField()
+    card_number = models.CharField(max_length=30, null=False, blank=True, default=None)
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
     transaction = models.OneToOneField('Transaction', on_delete=models.CASCADE, null=True, blank=True)

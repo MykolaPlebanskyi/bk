@@ -34,9 +34,12 @@ class WithdrawForm(forms.ModelForm):
         fields = ['amount', 'card_number']
 
     def clean_card_number(self):
-        card = self.cleaned_data['card_number']
+        card = self.cleaned_data.get('card_number', '').replace(' ', '')
+        if not card:
+            raise forms.ValidationError("Поле не може бути порожнім.")
+        if len(card) < 8:
+            raise forms.ValidationError("Номер картки має містити щонайменше 8 цифр.")
         if not card.isdigit():
             raise forms.ValidationError("Номер картки повинен містити лише цифри.")
-        if len(card) != 8:
-            raise forms.ValidationError("Номер картки повинен містити рівно 8 цифр.")
         return card
+

@@ -1,87 +1,90 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+{% block title %}Історія ставок{% endblock %}
 {% block content %}
 
-<h2 class="my-4 text-center">📜 Історія ставок</h2>
+<h2 style="margin-bottom: 20px; font-weight: 700; color: #00d084;">📜 Історія ставок</h2>
 
-<style>
-  /* Центрування та ширина */
-  .custom-table-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 15px;
-  }
+<hr class="separator">
 
-  table.table {
-    min-width: 1000px;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    text-align: center; /* Горизонтальне центрування всередині таблиці */
-  }
-  td, th {
-    vertical-align: middle;
-  }
-
-  .badge {
-    font-size: 0.9rem;
-  }
-
-  .text-truncate {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-</style>
-
-<div class="custom-table-container table-responsive">
-  <table class="table table-hover align-middle text-center">
-    <thead class="table-light border-bottom border-2">
-      <tr class="fw-semibold text-uppercase small">
-        <th scope="col">📅 Дата</th>
-        <th scope="col">⚔️ Матч</th>
-        <th scope="col">🏳️ Команда</th>
-        <th scope="col">💰 Сума</th>
-        <th scope="col">📈 Коеф.</th>
-        <th scope="col">📊 Прибуток</th>
-        <th scope="col">📌 Статус</th>
-      </tr>
+{% if bets %}
+<table class="transactions-table" role="table" aria-label="Історія ставок">
+    <thead>
+        <tr>
+            <th scope="col">📅 Дата</th>
+            <th scope="col">⚔️ Матч</th>
+            <th scope="col">🏳️ Команда</th>
+            <th scope="col">💰 Сума</th>
+            <th scope="col">📈 Коеф.</th>
+            <th scope="col">📊 Прибуток</th>
+            <th scope="col">📌 Статус</th>
+        </tr>
     </thead>
     <tbody>
-      {% for bet in bets %}
-      <tr>
-        <td class="text-nowrap">{{ bet.created_at|date:"Y-m-d H:i" }}</td>
-        <td class="text-truncate" style="max-width: 220px;" title="{{ bet.match }}">{{ bet.match }}</td>
-        <td class="text-truncate" style="max-width: 180px;" title="{{ bet.team.name }}">{{ bet.team.name }}</td>
-        <td>{{ bet.amount|floatformat:2 }}₴</td>
-        <td>{{ bet.odds_at_bet_time|floatformat:2 }}</td>
-        <td>
-          {% if bet.is_won == True %}
-            <span class="text-success fw-bold">{{ bet.profit|floatformat:2 }}₴</span>
-          {% elif bet.is_won == False %}
-            <span class="text-danger fw-bold">0₴</span>
-          {% else %}
-            <span class="text-muted fst-italic" title="Очікуваний прибуток">
-              {{ bet.potential_profit|floatformat:2 }}₴
-            </span>
-          {% endif %}
-        </td>
-        <td>
-          {% if bet.is_won == True %}
-            <span class="badge bg-success">✅ Виграв</span>
-          {% elif bet.is_won == False %}
-            <span class="badge bg-danger">❌ Програв</span>
-          {% else %}
-            <span class="badge bg-secondary">⏳ Очікується</span>
-          {% endif %}
-        </td>
-      </tr>
-      {% empty %}
-      <tr>
-        <td colspan="7" class="text-center text-muted fst-italic">Ставок ще немає.</td>
-      </tr>
-      {% endfor %}
+        {% for bet in bets %}
+        <tr>
+            <td>{{ bet.created_at|date:"d.m.Y H:i" }}</td>
+            <td style="max-width: 220px;" title="{{ bet.match }}">{{ bet.match }}</td>
+            <td style="max-width: 180px;" title="{{ bet.team.name }}">{{ bet.team.name }}</td>
+            <td>{{ bet.amount|floatformat:2 }} ₴</td>
+            <td>{{ bet.odds_at_bet_time|floatformat:2 }}</td>
+            <td>
+                {% if bet.is_won == True %}
+                    <span style="color: #00d084; font-weight: 700;">{{ bet.profit|floatformat:2 }} ₴</span>
+                {% elif bet.is_won == False %}
+                    <span style="color: #ff4444; font-weight: 700;">0 ₴</span>
+                {% else %}
+                    <span style="color: #aaa; font-style: italic;">{{ bet.potential_profit|floatformat:2 }} ₴</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if bet.is_won == True %}
+                    <span style="color: #00d084; font-weight: 700;">✅ Виграв</span>
+                {% elif bet.is_won == False %}
+                    <span style="color: #ff4444; font-weight: 700;">❌ Програв</span>
+                {% else %}
+                    <span style="color: #999;">⏳ Очікується</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
     </tbody>
-  </table>
-</div>
+</table>
+
+{% else %}
+<p style="margin-top: 12px; font-style: italic; color: #888;">Ставок ще немає.</p>
+{% endif %}
+
+<style>
+    .separator {
+        margin: 15px 0;
+        border: none;
+        border-top: 1px solid #333;
+    }
+
+    .transactions-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 1rem;
+        color: #eee;
+        max-width: 100%;
+    }
+
+    .transactions-table thead tr {
+        background-color: #222;
+        color: #00d084;
+        font-weight: 700;
+    }
+
+    .transactions-table th, .transactions-table td {
+        padding: 14px 18px;
+        border-bottom: 1px solid #333;
+        text-align: left;
+        vertical-align: middle;
+    }
+
+    .transactions-table tbody tr:hover {
+        background-color: #00382244;
+    }
+</style>
 
 {% endblock %}
