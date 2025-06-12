@@ -13,10 +13,19 @@
     <a href="{% url 'withdraw' %}"><button class="btn-action btn-secondary">Вивести гроші</button></a>
 </div>
 
-<div id="top-up-info" class="top-up-info" aria-hidden="true" role="region" aria-label="Інформація для поповнення балансу">
-    <p>Щоб поповнити баланс, скиньте гроші на цей рахунок: <b>1234567890</b></p>
-    <p>Після переказу надішліть скріншот підтвердження у наш Discord: <b>@Support</b></p>
+<!--<div id="top-up-info" class="top-up-info" aria-hidden="true" role="region" aria-label="Інформація для поповнення балансу">-->
+<!--    <p>Щоб поповнити баланс, скиньте гроші на цей рахунок: <b>1234567890</b></p>-->
+<!--    <p>Після переказу надішліть скріншот підтвердження у наш Discord: <b>@Support</b></p>-->
+<!--</div>-->
+<div id="top-up-toast" class="top-up-toast" aria-hidden="true" role="alert" aria-live="polite">
+    <strong>💳 Реквізити для поповнення</strong>
+    <p>Скиньте гроші на рахунок: <b>1234567890</b></p>
+    <p>Після переказу надішліть скріншот у Discord: <b>@Support</b></p>
+    <button class="close-toast" aria-label="Закрити сповіщення">&times;</button>
 </div>
+
+
+
 
 <hr class="separator">
 
@@ -160,6 +169,17 @@
             transform: translateY(0);
         }
     }
+.transactions-table td:nth-child(5) {
+    height: 19px; /* постійна висота */
+    width: 180px; /* або інше значення, яке підходить */
+    max-width: 180px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    vertical-align: middle;
+    padding: 0 18px; /* зменшений padding */
+    white-space: nowrap;
+}
+
 
     .separator {
         margin: 15px 0;
@@ -185,6 +205,7 @@
         border-bottom: 1px solid #333;
         text-align: left;
         vertical-align: middle;
+        height: 19px; /* або будь-яка стала висота рядка */
     }
 
     .transactions-table tbody tr:hover {
@@ -195,19 +216,30 @@
     /*    margin: 0 auto;*/
     /*}*/
 
+    .transactions-table tbody tr {
+    height: 19px; /* або інша підходяща висота */
+    }
+
+
     .btn-cancel {
     background-color: #ff4444;
     color: #fff;
     border: none;
-    padding: 8px 16px;
     border-radius: 10px;
     font-weight: 700;
-    font-size: 0.9rem;
     cursor: pointer;
     box-shadow: 0 4px 10px rgba(255, 68, 68, 0.4);
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
     user-select: none;
     vertical-align: middle;
+    display: inline-block;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    line-height: 1.2;
+    white-space: nowrap;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
     }
 
     .btn-cancel:hover,
@@ -230,38 +262,85 @@
         margin: 0 10px;
         color: #ccc;
     }
+    .top-up-toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background-color: #1c352b;
+    color: #d9fdd3;
+    border-left: 5px solid #00d084;
+    padding: 16px 20px 16px 20px;
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0, 208, 132, 0.3);
+    width: 320px;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    transform: translateY(20px);
+    font-size: 0.95rem;
+}
+
+.top-up-toast.show {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.top-up-toast p {
+    margin: 6px 0;
+}
+
+.close-toast {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    color: #aaa;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.close-toast:hover {
+    color: #fff;
+}
+
+
 </style>
 
 <script>
     (function(){
         const btnTopUp = document.getElementById('btn-top-up');
-        const topUpInfo = document.getElementById('top-up-info');
+        const toast = document.getElementById('top-up-toast');
+        const closeBtn = toast.querySelector('.close-toast');
 
-        // Відкриваємо / закриваємо інфо про поповнення
-        btnTopUp.addEventListener('click', function(event) {
-            event.stopPropagation();
-            topUpInfo.classList.toggle('show');
-            topUpInfo.setAttribute('aria-hidden', !topUpInfo.classList.contains('show'));
+        btnTopUp.addEventListener('click', function() {
+            toast.classList.add('show');
+            toast.setAttribute('aria-hidden', 'false');
+
+            // Автоматичне закриття через 10 секунд
+            setTimeout(() => {
+                toast.classList.remove('show');
+                toast.setAttribute('aria-hidden', 'true');
+            }, 10000);
         });
 
-        // Закриваємо, якщо клік не на кнопці і не всередині блоку
-        document.addEventListener('click', function(event) {
-            if (!topUpInfo.contains(event.target) && event.target !== btnTopUp) {
-                topUpInfo.classList.remove('show');
-                topUpInfo.setAttribute('aria-hidden', 'true');
-            }
+        closeBtn.addEventListener('click', function() {
+            toast.classList.remove('show');
+            toast.setAttribute('aria-hidden', 'true');
         });
 
-        // Закриття через Esc для доступності
+        // Закриття через Esc
         document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                if (topUpInfo.classList.contains('show')) {
-                    topUpInfo.classList.remove('show');
-                    topUpInfo.setAttribute('aria-hidden', 'true');
-                    btnTopUp.focus();
-                }
+            if (event.key === 'Escape' && toast.classList.contains('show')) {
+                toast.classList.remove('show');
+                toast.setAttribute('aria-hidden', 'true');
             }
         });
     })();
 </script>
+
 {% endblock %}

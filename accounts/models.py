@@ -52,7 +52,7 @@ class WithdrawalRequest(models.Model):
                         transaction_type='withdrawal',
                         amount=self.amount,
                         status='failed',
-                        description='Заявку відхилено, кошти повернено'
+                        # description='Заявку відхилено, кошти повернено'
                     )
 
                 elif self.status == 'approved':
@@ -61,7 +61,7 @@ class WithdrawalRequest(models.Model):
                         transaction_type='withdrawal',
                         amount=self.amount,
                         status='completed',
-                        description='Заявку підтверджено адміністратором'
+                        # description='Заявку підтверджено адміністратором'
                     )
 
         super().save(*args, **kwargs)
