@@ -118,7 +118,7 @@ class Bet(models.Model):
             self.user.save(update_fields=['balance'])
         else:
             self.profit = 0.0
-        self.save(update_fields=['profit'])
+        self.save(update_fields=['profit', 'is_won'])
 
     @property
     def potential_profit(self):
