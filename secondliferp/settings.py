@@ -25,7 +25,7 @@ SECRET_KEY = 'm!47t@2dip^+!fu%t8o847==dtguu(m(s*eq5!nzsb6gla1^82'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['bk-n5ij.onrender.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
